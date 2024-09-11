@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+</head>
+
+<body>
+
+    <form id="login-form">
+        <h3>Login</h3>
+        <input type="text" placeholder="Name" id="usernameLog">
+        <input type="password" placeholder="Password" id="passwordLog">
+        <button class="log_reg" id="log_btn" type="submit">Log In</button>
+
+        <span id="response"></span>
+    </form>
+
+
+    <script>
+        const loginForm = document.getElementById("login-form");
+        const span = document.getElementById("response");
+        loginForm?.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            span.innerHTML = null;
+
+            const loginElement = document.getElementById("usernameLog");
+            const passwordElement = document.getElementById("passwordLog");
+
+            if (!loginElement || !passwordElement) {
+                span.style.color = "red";
+                span.innerHTML = "Missing login or password field.";
+                return;
+            }
+
+            const user = {
+                login: loginElement.value,
+                password: passwordElement.value
+            };
+
+            try {
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(user)
+                });
+                const result = await response.json();
+                if (result.error) {
+                    span.style.color = "red";
+                    span.innerHTML = result.error;
+                } else {
+                    const token = result.token;
+                    let date = new Date();
+                    date.setTime(date.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    document.cookie = `token=${token};expires=${date.toUTCString()};path=/`;
+                    window.location.assign("/dashboard");
+                }
+            } catch (error) {
+                span.style.color = "red";
+                span.innerHTML = "An error occurred during login.";
+            }
+        });
+
+    </script>
+</body>
+
+</html>
